@@ -9,10 +9,12 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -191,7 +193,7 @@ public class ApiAction {
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			try {
-				rep.setStatus(494);
+				rep.setStatus(404);
 				rep.setHeader("Cache-Control", "no-cache");
 				rep.setContentType("text/html");
 				rep.getOutputStream().write(e1.getMessage().getBytes());
@@ -219,21 +221,9 @@ public class ApiAction {
 
 			String packageStr = split[7];
 
-			String[] packages = packageStr.split("JCODER");
+			LOG.info("find class in packages " + packageStr);
 
-			LOG.info("find class in packages " + Arrays.toString(packages));
-
-			Set<Class<?>> classes = new HashSet<>();
-
-			for (String packageName : packages) {
-
-				if (packageName.endsWith(".class")) {
-					classes.add(Class.forName(packageName));
-				} else {
-					List<Class<?>> list = ClassUtil.getClasses(packageName);
-					classes.addAll(list);
-				}
-			}
+			Map<String, byte[]> classes = ClassUtil.getClasses(packageStr);
 
 			String pom = "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n"
 					+ "		  <modelVersion>4.0.0</modelVersion>\n" + "		  <groupId>org.nlpcn.jcoder.jar</groupId>\n" + "		  <artifactId>jcoder.jar</artifactId>\n"
@@ -246,7 +236,7 @@ public class ApiAction {
 			ServletOutputStream outputStream = rep.getOutputStream();
 
 			if (classes.size() == 0) {
-				throw new ClassNotFoundException("not foun any class in " + Arrays.toString(packages));
+				throw new ClassNotFoundException("not foun any class in " + packageStr);
 			}
 
 			if (path.endsWith(".pom")) {
@@ -270,10 +260,10 @@ public class ApiAction {
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			try {
-				rep.setStatus(494);
+				rep.setStatus(404);
 				rep.setHeader("Cache-Control", "no-cache");
 				rep.setContentType("text/html");
-				rep.getOutputStream().write(e1.getMessage().getBytes());
+				rep.getOutputStream().write(String.valueOf(e1.getMessage()).getBytes());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
@@ -377,21 +367,11 @@ public class ApiAction {
 					}
 				}
 
-				List<Class<?>> classes = ClassUtil.getClasses("org.nlpcn.jcoder.server.rpc.client");
+				Map<String, byte[]> classes = ClassUtil.getClasses("org.nlpcn.jcoder.server.rpc.client");
 
-				for (Class<?> clz : classes) {
-					String path = clz.getName().replace(".", "/") + ".class";
-
-					jos.putNextEntry(new JarEntry(path));
-
-					try (InputStream input = clz.getClassLoader().getResourceAsStream(path)) {
-						byte[] bytes = new byte[1024];
-						int len = 0;
-						while ((len = input.read(bytes)) >= 0) {
-							jos.write(bytes, 0, len);
-						}
-					}
-
+				for (Entry<String, byte[]> entry : classes.entrySet()) {
+					jos.putNextEntry(new JarEntry(entry.getKey()));
+					jos.write(entry.getValue());
 				}
 
 			}
@@ -405,26 +385,14 @@ public class ApiAction {
 	 * @return
 	 * @throws IOException
 	 */
-	private byte[] makeRpcClientJar(Set<Class<?>> classes) throws IOException {
+	private byte[] makeRpcClientJar(Map<String, byte[]> classes) throws IOException {
 
 		try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 			try (JarOutputStream jos = new JarOutputStream(bos)) {
-
-				for (Class<?> clz : classes) {
-					String path = clz.getName().replace(".", "/") + ".class";
-
-					jos.putNextEntry(new JarEntry(path));
-
-					try (InputStream input = clz.getClassLoader().getResourceAsStream(path)) {
-						byte[] bytes = new byte[1024];
-						int len = 0;
-						while ((len = input.read(bytes)) >= 0) {
-							jos.write(bytes, 0, len);
-						}
-					}
-
+				for (Entry<String, byte[]> entry : classes.entrySet()) {
+					jos.putNextEntry(new JarEntry(entry.getKey()));
+					jos.write(entry.getValue());
 				}
-
 			}
 			return bos.toByteArray();
 		}

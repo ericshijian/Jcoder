@@ -2,58 +2,32 @@ package org.nlpcn.jcoder.run.java;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-/** 
- * 类相关的工具类 
- *  
- * @author <a href="mailto:ohergal@gmail.com">ohergal</a> 
- *  
+import org.nlpcn.jcoder.util.JcoderIOUtil;
+
+import com.google.common.base.Joiner;
+
+/**
+ * 类相关的工具类
+ * 
+ * @author <a href="mailto:ohergal@gmail.com">ohergal</a>
+ * 
  */
 public class ClassUtil {
-
-	public static void main(String[] args) throws Exception {
-		List<Class> classes = ClassUtil.getAllClassByInterface(Class.forName("com.threeti.dao.base.IGenericDao"));
-		for (Class clas : classes) {
-			System.out.println(clas.getName());
-		}
-	}
-
-	/** 
-	 * 取得某个接口下所有实现这个接口的类 
-	 * */
-	public static List<Class> getAllClassByInterface(Class c) {
-		List<Class> returnClassList = null;
-
-		if (c.isInterface()) {
-			// 获取当前的包名
-			String packageName = c.getPackage().getName();
-			// 获取当前包下以及子包下所以的类
-			List<Class<?>> allClass = getClasses(packageName);
-			if (allClass != null) {
-				returnClassList = new ArrayList<Class>();
-				for (Class classes : allClass) {
-					// 判断是否是同一个接口
-					if (c.isAssignableFrom(classes)) {
-						// 本身不加入进去
-						if (!c.equals(classes)) {
-							returnClassList.add(classes);
-						}
-					}
-				}
-			}
-		}
-
-		return returnClassList;
-	}
 
 	/*
 	 * 取得某一类所在包的所有类名 不含迭代
@@ -74,23 +48,55 @@ public class ClassUtil {
 		return null;
 	}
 
-	/** 
-	 * 从包package中获取所有的Class 
-	 * @param pack 
-	 * @return 
+	/**
+	 * 从包package中获取所有的Class
+	 * 
+	 * @param pack
+	 * @return
 	 */
-	public static List<Class<?>> getClasses(String packageName) {
+	public static Map<String, byte[]> getClasses(String packageName) {
 
 		// 第一个class类的集合
-		List<Class<?>> classes = new ArrayList<Class<?>>();
+		Map<String, byte[]> classes = new HashMap<>();
+
 		// 是否循环迭代
 		boolean recursive = true;
 		// 获取包的名字 并进行替换
 		String packageDirName = packageName.replace('.', '/');
 		// 定义一个枚举的集合 并进行循环来处理这个目录下的things
 		Enumeration<URL> dirs;
+
+		ClassLoader loader = DynamicEngine.getInstance().getParentClassLoader();
+
+		if (packageName.endsWith(".class")) { //如果只查询一个文件
+
+			String[] split = packageName.split("\\.");
+			
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < split.length - 2; i++) {
+				sb.append(split[i]);
+				sb.append("/");
+			}
+
+			sb.append(split[split.length - 2]);
+			sb.append(".class");
+			
+			String resourcePath = sb.toString() ;
+			
+			InputStream resourceAsStream = loader.getResourceAsStream(resourcePath);
+			byte[] input2Bytes;
+			try {
+				input2Bytes = JcoderIOUtil.input2Bytes(resourceAsStream);
+
+				classes.put(resourcePath, input2Bytes);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return classes;
+		}
+
 		try {
-			dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);
+			dirs = loader.getResources(packageDirName);
 			// 循环迭代下去
 			while (dirs.hasMoreElements()) {
 				// 获取下一个元素
@@ -123,7 +129,7 @@ public class ClassUtil {
 								name = name.substring(1);
 							}
 							// 如果前半部分和定义的包名相同
-							if (name.startsWith(packageDirName)) {
+							if (name.startsWith(packageDirName + "/")) {
 								int idx = name.lastIndexOf('/');
 								// 如果以"/"结尾 是一个包
 								if (idx != -1) {
@@ -135,11 +141,11 @@ public class ClassUtil {
 									// 如果是一个.class文件 而且不是目录
 									if (name.endsWith(".class") && !entry.isDirectory()) {
 										// 去掉后面的".class" 获取真正的类名
-										String className = name.substring(packageName.length() + 1, name.length() - 6);
+										// String className = name.substring(packageName.length() + 1, name.length() - 6);
 										try {
 											// 添加到classes
-											classes.add(Class.forName(packageName + '.' + className));
-										} catch (ClassNotFoundException e) {
+											classes.put(name, JcoderIOUtil.input2Bytes(jar.getInputStream(entry)));
+										} catch (IOException e) {
 											e.printStackTrace();
 										}
 									}
@@ -158,14 +164,15 @@ public class ClassUtil {
 		return classes;
 	}
 
-	/** 
-	 * 以文件的形式来获取包下的所有Class 
-	 * @param packageName 
-	 * @param packagePath 
-	 * @param recursive 
-	 * @param classes 
+	/**
+	 * 以文件的形式来获取包下的所有Class
+	 * 
+	 * @param packageName
+	 * @param packagePath
+	 * @param recursive
+	 * @param classes
 	 */
-	public static void findAndAddClassesInPackageByFile(String packageName, String packagePath, final boolean recursive, List<Class<?>> classes) {
+	public static void findAndAddClassesInPackageByFile(String packageName, String packagePath, final boolean recursive, Map<String, byte[]> classes) {
 		// 获取此包的目录 建立一个File
 		File dir = new File(packagePath);
 		// 如果不存在或者 也不是目录就直接返回
@@ -183,14 +190,18 @@ public class ClassUtil {
 		for (File file : dirfiles) {
 			// 如果是目录 则继续扫描
 			if (file.isDirectory()) {
-				findAndAddClassesInPackageByFile(packageName + "." + file.getName(), file.getAbsolutePath(), recursive, classes);
+				findAndAddClassesInPackageByFile(packageName.replace('.', '/') + "/" + file.getName(), file.getAbsolutePath(), recursive, classes);
 			} else {
 				// 如果是java类文件 去掉后面的.class 只留下类名
-				String className = file.getName().substring(0, file.getName().length() - 6);
+				//	String className = file.getName().substring(0, file.getName().length() - 6);
 				try {
 					// 添加到集合中去
-					classes.add(Class.forName(packageName + '.' + className));
-				} catch (ClassNotFoundException e) {
+					classes.put(packageName.replace(".", "/") + '/' + file.getName(), JcoderIOUtil.input2Bytes(new FileInputStream(file)));
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

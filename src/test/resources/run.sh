@@ -20,5 +20,5 @@ case $1 in
 "stop")
    stop
 ;;
-*) echo "only accept params start|stop|restart" ;
+*) echo "only accept params start|stop|restart" ;;
 esac

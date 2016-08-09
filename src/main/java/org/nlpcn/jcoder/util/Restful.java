@@ -44,6 +44,9 @@ public class Restful {
 		this.code = code;
 	}
 
+	public Restful() {
+	}
+
 	public Restful(boolean ok, String message, Object obj, int code) {
 		this.ok = ok;
 		this.message = message;
@@ -65,12 +68,10 @@ public class Restful {
 	public Restful(Object obj) {
 		this.obj = obj;
 	}
-	
-	
 
 	@Override
 	public String toString() {
-		return  JSONObject.toJSONString(this);
+		return JSONObject.toJSONString(this);
 	}
 
 	public static Restful instance(boolean ok, String message, Object obj, int code) {
