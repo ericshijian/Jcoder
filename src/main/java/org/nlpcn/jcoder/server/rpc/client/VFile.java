@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jetty.util.BlockingArrayQueue;
-import org.nlpcn.jcoder.server.rpc.server.Rpcs;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -32,7 +31,9 @@ public class VFile {
 
 	public static final byte[] ERR_BYTE = new byte[] { 'j', 'C', 'o', 'D', 'e', 'R', 'v', 'F', 'e', 'r', 'r' };
 
-	public static final String VFILE = "__JCODER_VFile_CLASS_METHOD";
+	public static final String VFILE_CLIENT = "__JCODER_VFile_CLIENT_METHOD";
+
+	public static final String VFILE_SERVER = "__JCODER_VFile_SERVER_METHOD";
 
 	private static final int LEN = 1024 * 64;
 
@@ -60,7 +61,7 @@ public class VFile {
 
 	private long off;
 
-	private int len;
+	private int len = LEN;
 
 	private BlockingQueue<byte[]> queue;
 
@@ -84,7 +85,7 @@ public class VFile {
 	}
 
 	public VFile(File file) {
-		file = new File(file.getAbsolutePath());//构造绝对路径的file
+		file = new File(file.getAbsolutePath());// 构造绝对路径的file
 		this.id = UUID.randomUUID().toString();
 		this.name = file.getName();
 		this.clientLocalPath = file.getAbsolutePath();
@@ -280,6 +281,47 @@ public class VFile {
 	 * @throws InterruptedException
 	 */
 	private byte[] readBytes(int len) throws InterruptedException, IOException {
+		if (Rpcs.getReq() != null) { // 说明当前在服务器端,需要从客户端读取
+			return readClient(len);
+		} else {
+			return readServer(len);
+		}
+	}
+
+	/**
+	 * 从服务器端读取流到客户端
+	 * @param len
+	 * @return
+	 * @throws IOException 
+	 */
+	private byte[] readServer(int len) throws IOException {
+		RpcRequest req = new RpcRequest(UUID.randomUUID().toString(), VFILE_SERVER, VFILE_SERVER, true, false, 120000L, new Object[] { this });
+		byte[] bytes = null;
+		try {
+			Object result = RpcClient.getInstance().proxy(req);
+			if (result instanceof String) {
+				throw new IOException((String) result);
+			} else {
+				bytes = (byte[]) result;
+				if (bytes != null) {
+					off += bytes.length;
+				}
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			throw new IOException(e);
+		}
+		return bytes;
+	}
+
+	/**
+	 * 从客户端读取流到服务器端
+	 * @param len
+	 * @return
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
+	private byte[] readClient(int len) throws InterruptedException, IOException {
 		beginTime = System.currentTimeMillis();
 
 		if (queue == null) {

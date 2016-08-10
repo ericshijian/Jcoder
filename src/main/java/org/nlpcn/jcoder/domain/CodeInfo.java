@@ -1,6 +1,5 @@
 package org.nlpcn.jcoder.domain;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
@@ -175,9 +174,6 @@ public class CodeInfo {
 			return this.method.getName();
 		}
 
-		public Object invoke(Object obj, Object... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-			return this.method.invoke(obj, args);
-		}
 	}
 
 }

@@ -108,7 +108,7 @@ class ActionRunManager {
 	}
 
 	public static void removeIfOver(String key) {
-		THREAD_POOL.remove(key) ;
+		THREAD_POOL.remove(key);
 	}
 
 	public static void stopAll(String taskName) {

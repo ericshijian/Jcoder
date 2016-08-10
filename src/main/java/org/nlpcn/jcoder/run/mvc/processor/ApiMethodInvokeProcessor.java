@@ -45,6 +45,13 @@ public class ApiMethodInvokeProcessor extends AbstractProcessor {
 		Task module = (Task) ac.getModule();
 		Method method = ac.getMethod();
 		Object[] args = ac.getMethodArgs();
+		
+		
+
+		if (!module.codeInfo().getExecuteMethod(method.getName()).isRestful()) {
+			throw new IllegalAccessException(module.getName() + "/" + method.getName() + " is not public by restful");
+		}
+		
 		try {
 			threadName = module.getName() + "@" + method.getName() + "@" + ac.getRequest().getRemoteAddr() + "@" + DateUtils.formatDate(new Date(), "yyyyMMddHHmmss") + "@" + al.getAndIncrement();
 			ThreadManager.add2ActionTask(threadName, Thread.currentThread());

@@ -1,10 +1,7 @@
-package org.nlpcn.jcoder.server.rpc.server;
+package org.nlpcn.jcoder.server.rpc.client;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import org.nlpcn.jcoder.server.rpc.client.RpcRequest;
-import org.nlpcn.jcoder.server.rpc.client.RpcResponse;
 
 import io.netty.channel.ChannelHandlerContext;
 

@@ -1,7 +1,4 @@
-package org.nlpcn.jcoder.server.rpc.server;
-
-import org.nlpcn.jcoder.server.rpc.client.RpcRequest;
-import org.nlpcn.jcoder.server.rpc.client.RpcResponse;
+package org.nlpcn.jcoder.server.rpc.client;
 
 /**
  * 线程池维护 请求的上下文

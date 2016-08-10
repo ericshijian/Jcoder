@@ -14,8 +14,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.nlpcn.jcoder.util.ExceptionUtil;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -226,8 +224,9 @@ public class RpcClient {
 			VFile file = (VFile) rep.getResult();
 
 			if (!file.check()) {
-				RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE, VFile.VFILE, true, false, 0, new Object[] { "verification err" });
+				RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE_SERVER, VFile.VFILE_SERVER, true, false, 0, new Object[] { "verification err" });
 				fileChannel.writeAndFlush(rpcRequest).sync().addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+				return;
 			}
 
 			if (file.isFile()) {
@@ -238,6 +237,12 @@ public class RpcClient {
 
 		}
 
+		/**
+		 * 从一个流中读取
+		 * @param file
+		 * @throws InterruptedException
+		 * @throws IOException
+		 */
 		private void writeFromStream(VFile file) throws InterruptedException, IOException {
 
 			byte[] bytes = null;
@@ -251,59 +256,52 @@ public class RpcClient {
 
 				if (len <= 0) {
 					bytes = null;
-					inputStream.close();
-					VFile.STREAM_MAP.remove(file.getId());
+					InputStream remove = VFile.STREAM_MAP.remove(file.getId());
+					if (remove != null) {
+						remove.close();
+					}
 				} else if (len == b.length) {
 					bytes = b;
 				} else {
 					bytes = Arrays.copyOfRange(b, 0, len);
 				}
 
-				RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE, VFile.VFILE, true, false, 0, new Object[] { bytes });
+				if (bytes != null) {
+					file.setOff(file.getOff() + bytes.length);
+				}
+
+				RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE_CLIENT, VFile.VFILE_CLIENT, true, false, 0, new Object[] { bytes });
 
 				fileChannel.writeAndFlush(rpcRequest).sync().addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
 
 			} catch (Exception e) {
 				try {
-					RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE, VFile.VFILE, true, false, 0, new Object[] { ExceptionUtil.printStackTraceWithOutLine(e) });
+					RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE_CLIENT, VFile.VFILE_CLIENT, true, false, 0, new Object[] { e.getMessage() });
 					fileChannel.writeAndFlush(rpcRequest).sync().addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
 				} finally {
-					VFile.STREAM_MAP.remove(file.getId());
+					InputStream remove = VFile.STREAM_MAP.remove(file.getId());
+					if (remove != null) {
+						remove.close();
+					}
 				}
 
 			}
 		}
 
+		/**
+		 * 从文件中读取
+		 * @param file
+		 * @throws InterruptedException
+		 * @throws IOException
+		 */
 		private void writeFromFile(VFile file) throws InterruptedException, IOException {
-			FileInputStream fis = null;
-
-			byte[] bytes = null;
-
-			try {
-				byte[] b = new byte[file.getLen()];
-				fis = new FileInputStream(new File(file.getClientLocalPath()));
-				fis.skip(file.getOff());
-				int len = fis.read(b);
-
-				if (len <= 0) {
-					bytes = null;
-				} else if (len == b.length) {
-					bytes = b;
-				} else {
-					bytes = Arrays.copyOfRange(b, 0, len);
-				}
-
-				RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE, VFile.VFILE, true, false, 0, new Object[] { bytes });
-
-				fileChannel.writeAndFlush(rpcRequest).sync().addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-
-			} catch (Exception e) {
-				RpcRequest rpcRequest = new RpcRequest(file.getId(), VFile.VFILE, VFile.VFILE, true, false, 0, new Object[] { ExceptionUtil.printStackTraceWithOutLine(e) });
-				fileChannel.writeAndFlush(rpcRequest).sync().addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-			} finally {
-				if (fis != null) {
-					fis.close();
-				}
+			if (VFile.STREAM_MAP.contains(file.getId())) {
+				writeFromStream(file);
+			} else {
+				FileInputStream fileInputStream = new FileInputStream(new File(file.getClientLocalPath()));
+				fileInputStream.skip(file.getOff());
+				VFile.STREAM_MAP.put(file.getId(), fileInputStream);
+				writeFromStream(file);
 			}
 		}
 

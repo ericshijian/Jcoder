@@ -37,7 +37,7 @@ public class JavaSource2RpcUtil {
 			+ "		for (java.lang.reflect.Method method : methods) {\n" + "			String name = method.getName();\n" + "			if (name.startsWith(\"__JCODER__\")) {\n"
 			+ "				continue;\n" + "			}\n" + "			METHOD_MAP.put(name, method);\n" + "		}\n" + "	}\n" + "\n" + "	public [CLASS_NAME]() {\n"
 			+ "		__JCODER__init();\n" + "	}\n" + "\n" + "	public [CLASS_NAME](boolean syn, long timeout) {\n" + "		__JCODER__init();\n" + "		this.__JCODER__syn = syn;\n"
-			+ "		this.__JCODER__timeout = timeout;\n" + "	}\n" + "\n" + "	private boolean __JCODER__syn = true;\n" + "\n" + "	private long __JCODER__timeout = 60000L;\n" + "\n"
+			+ "		this.__JCODER__timeout = timeout;\n" + "	}\n" + "\n" + "	private boolean __JCODER__syn = true;\n" + "\n" + "	private long __JCODER__timeout = 1200000L;\n" + "\n"
 			+ "	public void set__JCODER__syn(boolean syn) {\n" + "		this.__JCODER__syn = syn;\n" + "	}\n" + "\n" + "	public void set__JCODER__timeout(long timeout) {\n"
 			+ "		this.__JCODER__timeout = timeout;\n" + "	}\n";
 	
