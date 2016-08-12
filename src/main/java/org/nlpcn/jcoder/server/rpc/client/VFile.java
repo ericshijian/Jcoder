@@ -289,6 +289,14 @@ public class VFile {
 	}
 
 	/**
+	 * 转换为输入流
+	 * @return
+	 */
+	public RpcInputStream toInputStream() {
+		return new RpcInputStream(this);
+	}
+
+	/**
 	 * 从服务器端读取流到客户端
 	 * @param len
 	 * @return

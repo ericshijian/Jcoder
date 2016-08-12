@@ -102,11 +102,11 @@ $(function() {
 			return;
 		}
 
-		content.append('<p>', message, '</p>');
+		content.append('<p>'+message+'</p>');
 		if (autoScroll) {
 			content.scrollTop(content.prop("scrollHeight"));
 		}
-		if (count++ > 500) { // 删除溢出的元素
+		if (count++ > 100) { // 删除溢出的元素
 			content.children()[0].remove()
 		}
 	};

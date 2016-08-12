@@ -32,16 +32,15 @@ import com.google.common.base.Joiner;
  */
 public class JavaSource2RpcUtil {
 
-	private static final String CONSTRUCOTR_CODE = "	private static final java.util.Map<String, java.lang.reflect.Method> METHOD_MAP = new java.util.HashMap<String, java.lang.reflect.Method>();\n" + "\n"
-			+ "	private void __JCODER__init() {\n" + "		Class<?> clz = this.getClass();\n" + "		java.lang.reflect.Method[] methods = clz.getMethods();\n"
+	private static final String CONSTRUCOTR_CODE = "	private static final java.util.Map<String, java.lang.reflect.Method> METHOD_MAP = new java.util.HashMap<String, java.lang.reflect.Method>();\n"
+			+ "\n" + "	private void __JCODER__init() {\n" + "		Class<?> clz = this.getClass();\n" + "		java.lang.reflect.Method[] methods = clz.getMethods();\n"
 			+ "		for (java.lang.reflect.Method method : methods) {\n" + "			String name = method.getName();\n" + "			if (name.startsWith(\"__JCODER__\")) {\n"
 			+ "				continue;\n" + "			}\n" + "			METHOD_MAP.put(name, method);\n" + "		}\n" + "	}\n" + "\n" + "	public [CLASS_NAME]() {\n"
 			+ "		__JCODER__init();\n" + "	}\n" + "\n" + "	public [CLASS_NAME](boolean syn, long timeout) {\n" + "		__JCODER__init();\n" + "		this.__JCODER__syn = syn;\n"
 			+ "		this.__JCODER__timeout = timeout;\n" + "	}\n" + "\n" + "	private boolean __JCODER__syn = true;\n" + "\n" + "	private long __JCODER__timeout = 1200000L;\n" + "\n"
 			+ "	public void set__JCODER__syn(boolean syn) {\n" + "		this.__JCODER__syn = syn;\n" + "	}\n" + "\n" + "	public void set__JCODER__timeout(long timeout) {\n"
 			+ "		this.__JCODER__timeout = timeout;\n" + "	}\n";
-	
-	
+
 	public static void main(String[] args) {
 		System.out.println(METHOD_TEMPLATE);
 	}
@@ -130,7 +129,6 @@ public class JavaSource2RpcUtil {
 			+ "	public String [METHOD_NAME]__jsonStr([ARGS]) throws Throwable {\n"
 			+ "		return (String) org.nlpcn.jcoder.server.rpc.client.RpcClient.getInstance().proxy(new org.nlpcn.jcoder.server.rpc.client.RpcRequest(java.util.UUID.randomUUID().toString(), this.getClass(),\n"
 			+ "				METHOD_MAP.get(\"[METHOD_NAME]\"), __JCODER__syn, true, __JCODER__timeout, new Object[] { [ARGS_NAME] }));\n" + "	}\n";
-	
 
 	private static String explainMethod(MethodDeclaration method) {
 
@@ -145,19 +143,46 @@ public class JavaSource2RpcUtil {
 			args = Joiner.on(" , ").join(parameters);
 			argsName = Joiner.on(" , ").join(parameters.stream().map(p -> p.getId()).collect(Collectors.toList()));
 		}
-		
-		String returnType = method.getType().toString() ;
-		
-		
-		if("void".equals(returnType)){
+
+		String returnType = baseConver(method.getType().toString());
+
+		if ("void".equals(returnType)) {
 			methodCode = methodCode.replace("return ([RETURN]) ", "");
 		}
-		
-		methodCode = methodCode.replace("[RETURN]", returnType) ;
+
+		methodCode = methodCode.replace("[RETURN]", returnType);
 
 		return methodCode.replace("[METHOD_NAME]", method.getName()).replace("[ARGS]", args).replace("[ARGS_NAME]", argsName);
 
 	}
 
+	/**
+	 * 防止obj到基本数据类型转换
+	 * @param string
+	 * @return
+	 */
+	private static String baseConver(String type) {
+		switch (type) {
+		case "byte":
+			return "Byte";
+		case "short":
+			return "Short";
+		case "int":
+			return "Integer";
+		case "long":
+			return "Long";
+		case "float":
+			return "Float";
+		case "double":
+			return "Double";
+		case "char":
+			return "Character";
+		case "boolean":
+			return "Boolean";
+		default:
+			return type;
+		}
+
+	}
 
 }
