@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpSession;
@@ -27,6 +28,7 @@ import org.nutz.ioc.loader.annotation.IocBean;
 import org.nutz.mvc.Mvcs;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 @IocBean
 public class TaskService {
@@ -199,7 +201,7 @@ public class TaskService {
 	 */
 	public void delByDB(Task task) throws Exception {
 		authEditorValidate(task.getGroupId());
-		basicDao.delByCondition(TaskHistory.class, Cnd.where("taskId", "=", task.getId())) ;//delete history
+		basicDao.delByCondition(TaskHistory.class, Cnd.where("taskId", "=", task.getId()));//delete history
 		basicDao.delById(task.getId(), Task.class); // 不需要通知队列了
 	}
 
@@ -218,14 +220,15 @@ public class TaskService {
 		HashSet<String> taskSet = new HashSet<>();
 
 		list.forEach(ti -> taskSet.add(ti.getName()));
-		
+
 		ThreadManager.stopScheduler();
-		
-		ThreadManager.startScheduler(); 
+
+		ThreadManager.startScheduler();
 
 		for (Task task : search) {
 			try {
 				TASK_MAP_CACHE.put(task.getName(), task);
+				StaticValue.MAPPING.remove(task.getName());//删掉urlmapping重新加载
 				if (task.getStatus() == 0) {
 					task.setMessage("not active");
 				} else if (task.getType() == 2) {
@@ -346,5 +349,40 @@ public class TaskService {
 
 	public List<Task> getTasks(int... ids) {
 		return basicDao.searchByIds(Task.class, ids, "name");
+	}
+
+	/**
+	 * 检查所有的task
+	 * 
+	 * @throws Exception
+	 */
+	public void checkAllTask() throws Exception {
+		// 获得当前运行的任务
+		List<Task> search = StaticValue.systemDao.search(Task.class, "id");
+
+		// 线程任务
+		List<TaskInfo> threads = ThreadManager.getAllThread();
+
+		Set<String> sets = Sets.newHashSet();
+
+		threads.forEach(ti -> sets.add(ti.getName()));
+
+		for (Task task : search) {
+			// 检查while的task是否活着
+			if (task.getStatus() == 1 && "while".equalsIgnoreCase(task.getScheduleStr())) {
+				if (!sets.contains(task.getName())) {
+					LOG.warn(task.getName() + " is while task , not find in threads , now to start it! ");
+					this.flush(task.getId());
+				}
+			}
+			// stop的task是否活着
+			if (task.getStatus() == 0) {
+				// 如果不是1 那么不正常，全局刷新
+				if (sets.contains(task.getName())) {
+					LOG.warn(task.getName() + " is stop task , but it is runing, now sotp it ! ");
+					this.flush(task.getId());
+				}
+			}
+		}
 	}
 }

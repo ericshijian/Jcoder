@@ -8,6 +8,7 @@ import org.nlpcn.jcoder.service.TaskService;
 import org.nlpcn.jcoder.util.SharedSpace;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class RunTaskJob implements Runnable {
 
@@ -18,7 +19,7 @@ public class RunTaskJob implements Runnable {
 		LinkedBlockingQueue<String> taskQueue = SharedSpace.getTaskQueue() ;
 		while (true) {
 			try {
-				String taskName = taskQueue.poll();
+				String taskName = taskQueue.poll(Integer.MAX_VALUE,TimeUnit.DAYS);
 				if (StringUtil.isNotBlank(taskName)) {
 					LOG.info("get " + taskName + " to task_quene ! wil be run!");
 					Task task = TaskService.findTaskByCache(taskName);
