@@ -257,7 +257,6 @@ public class Bootstrap {
 			key = PREFIX + key;
 		}
 		if (value != null) {
-			System.out.println("put env to system.propertie: " + key + " ============= " + value);
 			System.setProperty(key, value);
 		}
 	}

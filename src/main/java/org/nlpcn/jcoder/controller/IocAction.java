@@ -31,6 +31,9 @@ public class IocAction {
 	public JsonResult save(@Param("code") String code) {
 		IOUtil.Writer(StaticValue.HOME + "/resource/ioc.js", IOUtil.UTF8, code);
 		Ioc ioc = new NutIoc(new JsonLoader(StaticValue.HOME + "/resource/ioc.js"));
+		if(StaticValue.getUserIoc()!=null){
+			StaticValue.getUserIoc().depose();	
+		}
 		StaticValue.setUserIoc(ioc);
 		return StaticValue.okMessageJson("保存并加载成功！");
 	}

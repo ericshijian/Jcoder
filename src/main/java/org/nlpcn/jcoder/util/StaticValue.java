@@ -24,20 +24,26 @@ public class StaticValue {
 	public static final String PREFIX = "jcoder_";
 
 	public static final String HOME = getValueOrCreate("home", new File(System.getProperty("user.home"), ".jcoder").getAbsolutePath());
-	public static final String HOST = getValueOrCreate("host", null);
-
+	public static final String HOST = getValueOrCreate("host", "*");
 	public static final int PORT = ObjConver.getIntValue(getValueOrCreate("port", "8080"));
-
 	public static final int RPCPORT = ObjConver.getIntValue(getValueOrCreate("rpcport", String.valueOf(PORT + 1)));
-
-	public static final String LOG_PATH = getValueOrCreate("log", "log/jcoder.log");
-
+	public static final String LOG_PATH = getValueOrCreate("log", new File("log/jcoder.log").getAbsolutePath());
 	public static final File HOME_FILE = new File(HOME);
 	public static final File RESOURCE_FILE = new File(HOME_FILE, "resource");
 	public static final File LIB_FILE = new File(HOME_FILE, "lib");
 	public static final File PLUGIN_FILE = new File(HOME_FILE, "plugins");
-
 	public static final String VERSION = getResource("version");
+
+	static {
+		LOG.info("env in system.propertie: jcoder_home : " + HOME_FILE.getAbsolutePath());
+		LOG.info("env in system.propertie: jcoder_host : " + HOST);
+		LOG.info("env in system.propertie: jcoder_port : " + PORT);
+		LOG.info("env in system.propertie: jcoder_rpcport : " + RPCPORT);
+		LOG.info("env in system.propertie: jcoder_log : " + LOG_PATH);
+		LOG.info("env in system.propertie: jcoder_resource : " + RESOURCE_FILE.getAbsolutePath());
+		LOG.info("env in system.propertie: jcoder_lib : " + LIB_FILE.getAbsolutePath());
+		LOG.info("env in system.propertie: jcoder_plugins : " + PLUGIN_FILE.getAbsolutePath());
+	}
 
 	private static Ioc systemIoc;
 
@@ -79,6 +85,9 @@ public class StaticValue {
 			LOG.debug("get property " + key + ":" + value);
 		}
 		if (value == null) {
+			if(def!=null){
+				System.setProperty(PREFIX + key, def) ;
+			}
 			return def;
 		} else {
 			return value;

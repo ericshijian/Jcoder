@@ -151,7 +151,6 @@
 	<script src="${ctx }/editor/lib/codemirror.js"></script>
 	<script src="${ctx }/editor/addon/dialog/dialog.js"></script>
 	<script src="${ctx }/editor/addon/search/searchcursor.js"></script>
-	<script src="${ctx }/editor/mode/clike/clike.js"></script>
 	<script src="${ctx }/editor/addon/edit/matchbrackets.js"></script>
 	<script src="${ctx }/editor/keymap/vim.js"></script>
 	<script src="${ctx }/editor/addon/display/fullscreen.js"></script>

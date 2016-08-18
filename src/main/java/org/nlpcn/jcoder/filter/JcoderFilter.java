@@ -10,6 +10,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.nlpcn.commons.lang.util.StringUtil;
 import org.nlpcn.jcoder.run.mvc.ApiActionHandler;
 import org.nlpcn.jcoder.run.mvc.view.JsonView;
 import org.nlpcn.jcoder.util.ApiException;
@@ -40,7 +41,7 @@ public class JcoderFilter extends NutFilter {
 		if (path.startsWith("/api/")) {
 			_doFilter(chain, request, response);
 		} else {
-			if (host == null || host.equals(request.getServerName()) || request.getServletPath().startsWith("/apidoc")) {
+			if (host == null || "*".equals(host) || StringUtil.isBlank("host") || host.equals(request.getServerName()) || request.getServletPath().startsWith("/apidoc")) {
 				super.doFilter(request, response, chain);
 			} else {
 				_doAuthoErr(response);

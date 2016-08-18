@@ -113,7 +113,7 @@ public class SerializationUtilTest {
 	@Test
 	public void testFile() {
 
-		VFile vFile = new VFile(new File("src"));
+		VFile vFile = new VFile(new File("src/main/java"));
 
 		byte[] serializer = SerializationUtil.serialize(vFile);
 

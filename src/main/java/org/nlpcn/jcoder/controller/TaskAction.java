@@ -42,14 +42,14 @@ public class TaskAction {
 			boolean save = taskService.saveOrUpdate(task, groupId);
 			job.put("ok", true);
 			job.put("save", save);
-			job.put("message", "保存成功！");
+			job.put("message", "save ok！");
 			job.put("id", task.getId());
 			job.put("name", task.getName());
 			return job.toJSONString();
 		} catch (Exception e) {
 			e.printStackTrace();
 			job.put("ok", false);
-			job.put("message", "保存失败　原因:" + e.getMessage());
+			job.put("message", "save err!　message:" + e.getMessage());
 			return job.toJSONString();
 		}
 	}

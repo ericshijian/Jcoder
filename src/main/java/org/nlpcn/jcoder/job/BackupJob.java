@@ -59,7 +59,7 @@ public class BackupJob implements Runnable {
 				}
 
 				OptionalLong max = list.stream().mapToLong(s -> ObjConver.getLong(s.replace(".tasks.bak", ""))).max();
-
+				
 				String content = IOUtil.getContent(new File(backupPath, max.getAsLong() + ".tasks.bak"), "utf-8");
 
 				if (backup.equals(content)) {

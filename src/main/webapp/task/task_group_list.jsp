@@ -164,7 +164,7 @@
 					var row = $("#clone").clone();
 					row.find("#taskName").text(n.name);
 					row.find("#taskDescription").html(n.description);
-					row.find("#taskStatus").html(n.status!=0?'<span	class="label-success label label-default">激活</span>':'<span class="label-success label label-danger">停用</span>');
+					row.find("#taskStatus").html(n.status!=0?'<span	class="label-success label label-default">Active</span>':'<span class="label-success label label-danger">Stop</span>');
 					row.find("#taskSuccess").text(n.success+' times');
 					row.find("#taskError").text(n.error+' times');
 					row.find("#taskMessage").text(n.message);

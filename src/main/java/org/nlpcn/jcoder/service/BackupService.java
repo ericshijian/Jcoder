@@ -29,7 +29,7 @@ public class BackupService {
 
 		groups.forEach(g -> {
 			JSONObject job = (JSONObject) JSONObject.toJSON(g);
-			List<Task> tasks = systemDao.search(Task.class, "id");
+			List<Task> tasks = systemDao.search(Task.class, Cnd.where("groupId", "=", g.getId()));
 			job.put("tasks", tasks);
 			sb.append(job.toJSONString());
 			sb.append("\n");
@@ -47,26 +47,32 @@ public class BackupService {
 					continue;
 				}
 				JSONObject job = JSONObject.parseObject(temp);
-				JSONArray jarrs = (JSONArray) job.remove("task");
+				JSONArray jarrs = (JSONArray) job.remove("tasks");
+
+				if (jarrs == null) {
+					continue;
+				}
+
 				Group group = JSONObject.toJavaObject(job, Group.class);
 				//查看此group是否存在
 				List<Group> search = systemDao.search(Group.class, Cnd.where("name", "=", group.getName()));
 				if (search != null && search.size() > 0) { //说明存在
-					//如果是同一个那么跳过,如果不是,创建新的
-					if (!group.getName().equals(search.get(0).getName())) {
-						group.setId(null);
-						try {
-							systemDao.save(group);
-							sb.append("create group " + group.getName() + "\n");
-						} catch (Exception e) {
-							sb.append("err create group " + group.getName() + "\n");
-							e.printStackTrace();
-						}
+					group = search.get(0);
+				} else {
+					group.setId(null);
+					try {
+						systemDao.save(group);
+						sb.append("create group " + group.getName() + "\n");
+					} catch (Exception e) {
+						sb.append("err create group " + group.getName() + "\n");
+						e.printStackTrace();
 					}
 				}
 
+				long groupId = group.getId();
+
 				jarrs.stream().map(j -> JSONObject.toJavaObject((JSONObject) j, Task.class)).forEach(t -> {
-					t.setGroupId(group.getId());
+					t.setGroupId(groupId);
 					//判断task是否存在
 					List<Task> tasks = systemDao.search(Task.class, Cnd.where("name", "=", t.getName()));
 					if (tasks == null || tasks.size() == 0) {
@@ -79,6 +85,7 @@ public class BackupService {
 						}
 					} else {
 						t.setId(tasks.get(0).getId());
+
 						try {
 							systemDao.update(t);
 							sb.append("update task " + t.getName() + "\n");
@@ -93,7 +100,9 @@ public class BackupService {
 		}
 
 		try {
-			taskService.initTaskFromDB();
+			if (sb.length() > 0) {
+				taskService.initTaskFromDB();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			sb.append("err check all task " + e.getMessage());

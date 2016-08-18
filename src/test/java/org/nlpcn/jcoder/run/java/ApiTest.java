@@ -11,13 +11,19 @@ import org.nutz.ioc.loader.annotation.Inject;
 
 /**
  * 测试文档搜索
+ * 
  * @author Ansj
  *
  */
 @Single(true)
-public class ApiTest {@Inject private Logger log;
+public class ApiTest {
+	@Inject
+	private Logger log;
 
-	@DefaultExecute @Cache
-	public Object defaultTest(HttpServletRequest req,String name) throws InterruptedException {return Restful.instance("hello jcoder! ", null) ;}
+	@DefaultExecute
+	@Cache
+	public Object defaultTest() throws InterruptedException {
+		return Restful.instance("hello jcoder! "+"", null);
+	}
 
 }
