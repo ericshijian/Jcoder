@@ -346,20 +346,25 @@ public class JarService {
 	 * @return
 	 */
 	public static boolean removeJar(File file) {
-		if (file.getParentFile().equals(new File(JAR_PATH)) && file.getPath().toLowerCase().endsWith(".jar")) {
-
+		if (file.getParentFile().getAbsolutePath().equals(new File(JAR_PATH).getAbsolutePath()) && file.getPath().toLowerCase().endsWith(".jar")) {
 			try {
 				synchronized (DynamicEngine.getInstance()) {
 					DynamicEngine.close();
-					file.delete();
+					for (int i = 0; i < 10 && file.exists(); i++) {
+						LOG.info(i + " to delete file: " + file.getAbsolutePath());
+						file.delete();
+						Thread.sleep(300L);
+					}
 					flushClassLoader();
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			return true;
 		} else {
+			LOG.info(file.getAbsolutePath()+" is not manager by file JAR_PATH is :"+JAR_PATH);
 			return false;
 		}
 

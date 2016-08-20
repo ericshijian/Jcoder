@@ -18,6 +18,7 @@ import javax.tools.ToolProvider;
 
 import org.apache.log4j.Logger;
 import org.nlpcn.commons.lang.util.StringUtil;
+import org.nlpcn.jcoder.controller.ThreadAction;
 import org.nlpcn.jcoder.run.CodeException;
 import org.nlpcn.jcoder.scheduler.TaskException;
 import org.nlpcn.jcoder.service.TaskService;
@@ -44,7 +45,6 @@ public class DynamicEngine {
 		ourInstance = new DynamicEngine(classLoader);
 		// 如果classloader被改变.全站的动态代码全部刷新一遍.
 		synchronized (StaticValue.MAPPING) {
-			StaticValue.MAPPING.removeAll();
 			StaticValue.getBean(TaskService.class, "taskService").initTaskFromDB();
 		}
 
