@@ -358,8 +358,10 @@ public class ApiAction {
 						String path = pack.replace(".", "/") + "/" + className + ".class";
 
 						jos.putNextEntry(new JarEntry(path));
-
 						jos.write(bytes);
+						// package source code
+						jos.putNextEntry(new JarEntry(pack.replace(".", "/") + "/" + className + ".java"));
+						jos.write(code.getBytes("utf-8"));
 
 					} catch (Exception e) {
 						e.printStackTrace();

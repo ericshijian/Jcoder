@@ -1,11 +1,10 @@
 package cn.com.infcn.api.test;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
+import org.nlpcn.jcoder.domain.User;
 import org.nlpcn.jcoder.run.annotation.Execute;
-import org.nlpcn.jcoder.util.StaticValue;
 import org.nutz.ioc.loader.annotation.Inject;
 
 /**
@@ -20,10 +19,13 @@ public class TestApi {
 	
 	@Inject
 	private ExecutorService threadPool ;
+	
+	@Inject
+	private User user ;
 
-	@Execute
-	public ExecutorService test() {
-		return threadPool;
+	@Execute(restful=false,rpc=false)
+	public User test(String name) {
+		return user ;
 	}
 	
 }

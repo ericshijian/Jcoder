@@ -32,14 +32,10 @@ import com.google.common.base.Joiner;
  */
 public class JavaSource2RpcUtil {
 
-	private static final String CONSTRUCOTR_CODE = "	private static final java.util.Map<String, java.lang.reflect.Method> METHOD_MAP = new java.util.HashMap<String, java.lang.reflect.Method>();\n"
-			+ "\n" + "	private void __JCODER__init() {\n" + "		Class<?> clz = this.getClass();\n" + "		java.lang.reflect.Method[] methods = clz.getMethods();\n"
-			+ "		for (java.lang.reflect.Method method : methods) {\n" + "			String name = method.getName();\n" + "			if (name.startsWith(\"__JCODER__\")) {\n"
-			+ "				continue;\n" + "			}\n" + "			METHOD_MAP.put(name, method);\n" + "		}\n" + "	}\n" + "\n" + "	public [CLASS_NAME]() {\n"
-			+ "		__JCODER__init();\n" + "	}\n" + "\n" + "	public [CLASS_NAME](boolean syn, long timeout) {\n" + "		__JCODER__init();\n" + "		this.__JCODER__syn = syn;\n"
-			+ "		this.__JCODER__timeout = timeout;\n" + "	}\n" + "\n" + "	private boolean __JCODER__syn = true;\n" + "\n" + "	private long __JCODER__timeout = 1200000L;\n" + "\n"
-			+ "	public void set__JCODER__syn(boolean syn) {\n" + "		this.__JCODER__syn = syn;\n" + "	}\n" + "\n" + "	public void set__JCODER__timeout(long timeout) {\n"
-			+ "		this.__JCODER__timeout = timeout;\n" + "	}\n";
+	private static final String CONSTRUCOTR_CODE = "	public [CLASS_NAME]() {\n" + "	\n" + "	}\n" + "\n" + "	public [CLASS_NAME](boolean syn, long timeout) {\n"
+			+ "		this.__JCODER__syn = syn;\n" + "		this.__JCODER__timeout = timeout;\n" + "	}\n" + "\n" + "	private boolean __JCODER__syn = true;\n" + "\n"
+			+ "	private long __JCODER__timeout = 1200000L;\n" + "\n" + "	public void set__JCODER__syn(boolean syn) {\n" + "		this.__JCODER__syn = syn;\n" + "	}\n" + "\n"
+			+ "	public void set__JCODER__timeout(long timeout) {\n" + "		this.__JCODER__timeout = timeout;\n" + "	}\n" + "\n";
 
 	public static void main(String[] args) {
 		System.out.println(METHOD_TEMPLATE);
@@ -59,6 +55,7 @@ public class JavaSource2RpcUtil {
 
 	/**
 	 * make task sourced to rpc source
+	 * 
 	 * @param reader
 	 * @param classz
 	 * @return
@@ -124,11 +121,11 @@ public class JavaSource2RpcUtil {
 	}
 
 	private static final String METHOD_TEMPLATE = "	public [RETURN] [METHOD_NAME]([ARGS]) throws Throwable {\n"
-			+ "		return ([RETURN]) org.nlpcn.jcoder.server.rpc.client.RpcClient.getInstance().proxy(new org.nlpcn.jcoder.server.rpc.client.RpcRequest(java.util.UUID.randomUUID().toString(), this.getClass(),\n"
-			+ "				METHOD_MAP.get(\"[METHOD_NAME]\"), __JCODER__syn, false, __JCODER__timeout, new Object[] { [ARGS_NAME] }));\n" + "	}\n" + "	\n"
+			+ "		return ([RETURN]) org.nlpcn.jcoder.server.rpc.client.RpcClient.getInstance().proxy(new org.nlpcn.jcoder.server.rpc.client.RpcRequest(java.util.UUID.randomUUID().toString(), this.getClass().getSimpleName(),\n"
+			+ "				\"[METHOD_NAME]\", __JCODER__syn, false, __JCODER__timeout, new Object[] { [ARGS_NAME] }));\n" + "	}\n" + "	\n"
 			+ "	public String [METHOD_NAME]__jsonStr([ARGS]) throws Throwable {\n"
-			+ "		return (String) org.nlpcn.jcoder.server.rpc.client.RpcClient.getInstance().proxy(new org.nlpcn.jcoder.server.rpc.client.RpcRequest(java.util.UUID.randomUUID().toString(), this.getClass(),\n"
-			+ "				METHOD_MAP.get(\"[METHOD_NAME]\"), __JCODER__syn, true, __JCODER__timeout, new Object[] { [ARGS_NAME] }));\n" + "	}\n";
+			+ "		return (String) org.nlpcn.jcoder.server.rpc.client.RpcClient.getInstance().proxy(new org.nlpcn.jcoder.server.rpc.client.RpcRequest(java.util.UUID.randomUUID().toString(), this.getClass().getSimpleName(),\n"
+			+ "				\"[METHOD_NAME]\", __JCODER__syn, true, __JCODER__timeout, new Object[] { [ARGS_NAME] }));\n" + "	}\n";
 
 	private static String explainMethod(MethodDeclaration method) {
 
@@ -158,6 +155,7 @@ public class JavaSource2RpcUtil {
 
 	/**
 	 * 防止obj到基本数据类型转换
+	 * 
 	 * @param string
 	 * @return
 	 */

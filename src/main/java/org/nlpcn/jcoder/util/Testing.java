@@ -42,7 +42,6 @@ import org.nutz.lang.Mirror;
  *
  */
 public class Testing {
-	
 
 	/**
 	 * instan task by ioc
@@ -51,9 +50,8 @@ public class Testing {
 	 * @return class c instance
 	 * @throws Exception
 	 */
-	public static <T> T instance(Class<T> c) throws Exception {
-
-		Ioc ioc = new NutIoc(new JsonLoader("resource/ioc.js"));
+	public static <T> T instance(Class<T> c, String iocPath) throws Exception {
+		Ioc ioc = new NutIoc(new JsonLoader(iocPath));
 
 		Mirror<?> mirror = Mirror.me(c);
 		T obj = c.newInstance();
@@ -68,9 +66,12 @@ public class Testing {
 				}
 			}
 		}
-		
-		
+
 		return obj;
+	}
+
+	public static <T> T instance(Class<T> c) throws Exception {
+		return instance(c, "resource/ioc.js");
 	}
 
 	/**
