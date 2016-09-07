@@ -1,34 +1,19 @@
 package org.nlpcn.jcoder.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.File;
 import java.lang.reflect.Field;
-import java.security.Principal;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.Part;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.ResourceBundle;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
+import org.nlpcn.commons.lang.util.FileFinder;
+import org.nlpcn.commons.lang.util.IOUtil;
+import org.nlpcn.commons.lang.util.ObjConver;
 import org.nlpcn.commons.lang.util.StringUtil;
+import org.nlpcn.jcoder.server.rpc.client.RpcClient;
+import org.nlpcn.jcoder.server.rpc.client.RpcRequest;
 import org.nutz.ioc.Ioc;
 import org.nutz.ioc.impl.NutIoc;
 import org.nutz.ioc.loader.annotation.Inject;
@@ -42,6 +27,8 @@ import org.nutz.lang.Mirror;
  *
  */
 public class Testing {
+
+	public static final String CODE_RUN = "123__CODE__RUN";
 
 	/**
 	 * instan task by ioc
@@ -74,8 +61,48 @@ public class Testing {
 		return instance(c, "resource/ioc.js");
 	}
 
-	public static String remote(Class<?> c, String methodName , Object... params){
-		
-	}
+	/**
+	 * 提交本地代码到远程运行,
+	 * 
+	 * @param timeout 超时时间,毫秒
+	 * @param c 本地类文件
+	 * @param methodName 运行的方法名称
+	 * @param params 方法传入的参数,
+	 * @return object 返回结果
+	 * @throws Throwable
+	 */
+	public static Object remote(int timeout, Class<?> c, String methodName, Object... params) throws Throwable {
+		// 根据class 获得代码
 
+		File codeFile = FileFinder.find(c.getName().replace(".", System.getProperty("file.separator")) + ".java");
+
+		String code = IOUtil.getContent(codeFile, "utf-8");
+
+		ResourceBundle rb = ResourceBundle.getBundle("remote_code_config");
+
+		String host = rb.getString("host");
+
+		int port = ObjConver.getIntValue(rb.getString("port"));
+
+		HashMap<String, String> map = new HashMap<>();
+		map.put("code", code);
+		map.put("name", rb.getString("name"));
+		map.put("password", StaticValue.passwordEncoding(rb.getString("password")));
+		
+		try {
+			RpcClient.connect(host, port);
+			RpcRequest req = new RpcRequest();
+			req.setClassName(CODE_RUN);
+			req.setMessageId(UUID.randomUUID().toString());
+			req.setMethodName(methodName);
+			params = Arrays.copyOf(params, params.length + 1);
+			params[params.length - 1] = map;
+			req.setArguments(params);
+			return RpcClient.getInstance().proxy(req);
+		} finally {
+			RpcClient.shutdown();
+		}
+
+	}
+	
 }

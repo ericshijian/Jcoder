@@ -48,6 +48,8 @@ public class Bootstrap {
 						putEnv(PREFIX + "log", dim[1]);
 					} else if (dim[0].equals("--maven")) {
 						putEnv(PREFIX + "maven", dim[1]);
+					} else if (dim[0].equals("--upload")) {
+						putEnv(PREFIX + "upload", dim[1]);
 					}
 				}
 			} else if (!arg.startsWith("-f")) {
@@ -57,7 +59,7 @@ public class Bootstrap {
 
 		getOrCreateEnv(PREFIX + "maven", "mvn");
 		getOrCreateEnv(PREFIX + "host", null);
-		
+
 		String logPath = getOrCreateEnv(PREFIX + "log", "log/jcoder.log");
 
 		String home = getOrCreateEnv(PREFIX + "home", new File(System.getProperty("user.home"), ".jcoder").getAbsolutePath());
@@ -205,10 +207,22 @@ public class Bootstrap {
 			pluginDir.mkdirs();
 		}
 
-		File resourceDir = new File(JcoderHome, "resource"); // create resource
-																// dir
+		File resourceDir = new File(JcoderHome, "resource"); // create resource dir
 		if (!resourceDir.exists()) {
 			resourceDir.mkdirs();
+		}
+
+		String uploadPath = System.getProperty(PREFIX + "upload"); //create upload file
+
+		if (uploadPath == null) {
+			uploadPath = new File(JcoderHome, "upload").getAbsolutePath();
+			putEnv(PREFIX + "upload", uploadPath);
+		}
+
+		File upload = new File(uploadPath);
+
+		if (!upload.exists()) {
+			upload.mkdirs();
 		}
 
 		File iocFile = new File(JcoderHome, "/resource/ioc.js"); // create ioc file

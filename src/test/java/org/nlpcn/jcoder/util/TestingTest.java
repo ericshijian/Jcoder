@@ -7,7 +7,6 @@ public class TestingTest {
 
 	@Test
 	public void test() throws InterruptedException, Exception {
-		Testing.instance(ApiTest.class).defaultTest() ;
 	}
 
 }

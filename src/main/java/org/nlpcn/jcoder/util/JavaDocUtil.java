@@ -114,7 +114,20 @@ public class JavaDocUtil {
 			String fieldName = null;
 			for (AnnotationExpr annotationExpr : ans) {
 				if (annotationExpr.getName().getName().equals("Param")) {
-					name = annotationExpr.getChildrenNodes().get(1).toString().replace("\"", "");
+					annotationExpr.getChildrenNodes().remove(0);
+					for (Node tempNode : annotationExpr.getChildrenNodes()) {
+						String str = tempNode.toString();
+
+						if (str.contains("=")) {
+							if (str.startsWith("value")) {
+								name = str.toString().replaceFirst("value", "").replaceFirst("=", "").replace("\"", "").trim();
+								break;
+							}
+						} else {
+							name = str.toString().replace("\"", "").trim();
+						}
+
+					}
 					break;
 				}
 			}

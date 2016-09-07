@@ -143,7 +143,7 @@ In this project you can fast publish your API and schedule task, dynamic edit yo
 		//http://localhost:8080/ApiExampleAction?user.name=aaa&user.passowrd=bbb
 		//http://localhost:8080/ApiExampleAction/function2?user.name=aaa&user.passowrd=bbb
 		//more about http://www.nutzam.com/core/mvc/http_adaptor.html
-		
+		@Execute(methods={"get","post"},restful=true, rpc=true) //methods default all , restufl,rpc default true 
 		@Cache(time=10,size=1000,block=false) // time SECONDS , block if false use asynchronous
 		public Object function2(@Param("..") User user) {
 	
