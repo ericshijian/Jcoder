@@ -34,6 +34,8 @@ public class VFile {
 	public static final String VFILE_CLIENT = "__JCODER_VFile_CLIENT_METHOD";
 
 	public static final String VFILE_SERVER = "__JCODER_VFile_SERVER_METHOD";
+	
+	public static final String VFILE_LOCAL = "__JCODER_VFile_LOCAL_METHOD";
 
 	private static final int LEN = 1024 * 64;
 
@@ -83,7 +85,7 @@ public class VFile {
 		this.verification = Util.encrypt(id + clientLocalPath);
 		STREAM_MAP.put(id, input);
 	}
-
+	
 	public VFile(File file) {
 		file = new File(file.getAbsolutePath());// 构造绝对路径的file
 		this.id = UUID.randomUUID().toString();

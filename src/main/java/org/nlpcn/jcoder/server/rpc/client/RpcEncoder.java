@@ -18,6 +18,11 @@ public class RpcEncoder extends MessageToByteEncoder<Object> {
 			byte[] data = SerializationUtil.serialize(msg);
 			out.writeInt(data.length);
 			out.writeBytes(data);
+		}else if(msg instanceof String){
+			System.out.println(msg);
+			byte[] data = ((String) msg).getBytes("utf-8");
+			out.writeInt(data.length);
+			out.writeBytes(data);
 		}
 	}
 }

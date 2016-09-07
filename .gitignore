@@ -12,3 +12,5 @@ code/
 /.gradle/
 .gradle/
 .DS_Store
+jcoder.properties
+

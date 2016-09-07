@@ -3,14 +3,18 @@ package org.nlpcn.jcoder.server.rpc.server;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 import org.nlpcn.jcoder.domain.CodeInfo.ExecuteMethod;
 import org.nlpcn.jcoder.domain.Task;
+import org.nlpcn.jcoder.domain.User;
+import org.nlpcn.jcoder.run.java.JavaRunner;
 import org.nlpcn.jcoder.run.mvc.processor.ApiActionInvoker;
 import org.nlpcn.jcoder.run.mvc.processor.ApiMethodInvokeProcessor;
 import org.nlpcn.jcoder.scheduler.ThreadManager;
@@ -21,8 +25,9 @@ import org.nlpcn.jcoder.server.rpc.client.VFile;
 import org.nlpcn.jcoder.service.TaskService;
 import org.nlpcn.jcoder.util.ApiException;
 import org.nlpcn.jcoder.util.DateUtils;
-import org.nlpcn.jcoder.util.ExceptionUtil;
 import org.nlpcn.jcoder.util.StaticValue;
+import org.nlpcn.jcoder.util.Testing;
+import org.nutz.dao.Cnd;
 
 import com.alibaba.fastjson.JSON;
 
@@ -45,35 +50,84 @@ public class ExecuteHandler extends SimpleChannelInboundHandler<RpcRequest> {
 		cause.printStackTrace();
 		LOG.error(cause.getMessage());
 		ctx.close();
+		ChannelManager.remove(ctx.channel());
+	}
+
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		super.channelInactive(ctx);
+		ChannelManager.remove(ctx.channel());
 	}
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, RpcRequest request) throws Exception {
 
-		if (VFile.VFILE_CLIENT.equals(request.getClassName()) && VFile.VFILE_CLIENT.equals(request.getMethodName())) {
-			clientRead(request);
-		} else if (VFile.VFILE_SERVER.equals(request.getClassName()) && VFile.VFILE_SERVER.equals(request.getMethodName())) {
-			serverRead(ctx, request);
-		} else {
-			String threadName = request.getClassName() + "@" + request.getMethodName() + "@RPC" + request.getMessageId() + "@" + DateUtils.formatDate(new Date(), "yyyyMMddHHmmss");
-			try {
-				executeTask(ctx, request, threadName);
-			} catch (Exception e) {
-				LOG.error(e);
+		String threadName = request.getClassName() + "@" + request.getMethodName() + "@RPC" + request.getMessageId() + "@" + DateUtils.formatDate(new Date(), "yyyyMMddHHmmss");
+
+		try {
+			ThreadManager.add2ActionTask(threadName, Thread.currentThread());
+
+			if (Testing.CODE_RUN.equals(request.getClassName())) { //执行远程方法
 				try {
-					writeError(ctx, request, e.getMessage());
-				} catch (Exception e1) {
-					e1.printStackTrace();
+					executeCode(ctx, request, threadName);
+				} catch (Exception e) {
+					LOG.error(e);
+					try {
+						writeError(ctx, request, e.getMessage());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+					throw e;
 				}
-				throw e;
-			} finally {
-				ThreadManager.removeActionIfOver(threadName);
+
+			} else if (VFile.VFILE_LOCAL.equals(request.getClassName()) && VFile.VFILE_LOCAL.equals(request.getMethodName())) {
+				write2Local(request);
+			} else if (VFile.VFILE_CLIENT.equals(request.getClassName()) && VFile.VFILE_CLIENT.equals(request.getMethodName())) {
+				clientRead(request);
+			} else if (VFile.VFILE_SERVER.equals(request.getClassName()) && VFile.VFILE_SERVER.equals(request.getMethodName())) {
+				serverRead(ctx, request);
+			} else {
+				try {
+					executeTask(ctx, request, threadName);
+				} catch (Exception e) {
+					LOG.error(e);
+					try {
+						writeError(ctx, request, e.getMessage());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+					throw e;
+				}
 			}
+		} finally {
+			ThreadManager.removeActionIfOver(threadName);
+		}
+	}
+
+	/**
+	 * 写入文件到服务器端
+	 * 
+	 * @param request
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	private void write2Local(RpcRequest request) throws FileNotFoundException, IOException {
+		byte[] data = (byte[]) request.getArguments()[0];
+		String messageId = request.getMessageId();
+		File file = new File(StaticValue.UPLOAD_DIR, messageId + ".temp");
+		if (data.length > 4) {
+			try (FileOutputStream fileOutputStream = new FileOutputStream(file, file.exists())) {
+				fileOutputStream.write(data, 4, data.length);
+			}
+		} else {
+			String filePath = file.getAbsolutePath();
+			file.renameTo(new File(filePath.substring(0, filePath.length() - 5)));
 		}
 	}
 
 	/**
 	 * 写错误流到服务器端
+	 * 
 	 * @param ctx
 	 * @param request
 	 * @param message
@@ -89,9 +143,10 @@ public class ExecuteHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
 	/**
 	 * 从服务器端读取流到客户端
+	 * 
 	 * @param request
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
 	private void serverRead(ChannelHandlerContext ctx, RpcRequest request) throws FileNotFoundException, IOException {
 		VFile file = (VFile) request.getArguments()[0];
@@ -110,6 +165,7 @@ public class ExecuteHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
 	/**
 	 * 内存中的流
+	 * 
 	 * @param ctx
 	 * @param request
 	 * @param file
@@ -160,10 +216,11 @@ public class ExecuteHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
 	/**
 	 * 文件流
+	 * 
 	 * @param ctx
 	 * @param request
 	 * @param file
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private void writeFromFile(ChannelHandlerContext ctx, RpcRequest request, VFile file) throws IOException {
 		if (VFile.STREAM_MAP.contains(file.getId())) {
@@ -178,6 +235,7 @@ public class ExecuteHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
 	/**
 	 * 客户端读取流到服务器端
+	 * 
 	 * @param request
 	 * @throws IOException
 	 * @throws Exception
@@ -211,8 +269,64 @@ public class ExecuteHandler extends SimpleChannelInboundHandler<RpcRequest> {
 	 * @param request
 	 * @param threadName
 	 */
+	private void executeCode(ChannelHandlerContext ctx, RpcRequest request, String threadName) {
+
+		RpcResponse response = Rpcs.getRep();
+
+		try {
+
+			Object[] arguments = request.getArguments();
+
+			@SuppressWarnings("all")
+			HashMap<String, String> map = (HashMap<String, String>) arguments[arguments.length - 1];
+
+			//检查用户名密码是否正确
+			User user = StaticValue.systemDao.findByCondition(User.class, Cnd.where("name", "=", map.get("name")).and("password", "=", map.get("password")));
+
+			if (user == null) {
+				throw new ApiException(ApiException.Unauthorized, "you name or password err!");
+			}
+
+			String code = map.get("code"); //获得code
+
+			Object[] param = new Object[arguments.length - 1];
+
+			for (int i = 0; i < param.length - 1; i++) {
+				param[i] = arguments[i];
+			}
+
+			Task task = new Task();
+
+			task.setCode(code);
+
+			JavaRunner runner = new JavaRunner(task).compile().instance();
+
+			ExecuteMethod method = task.codeInfo().getExecuteMethod(request.getMethodName());
+
+			if (method == null) {
+				throw new ApiException(404, "not find api " + task.codeInfo().getClassz().getName() + " by method name " + request.getMethodName() + " in mapping");
+			}
+
+			Object result = runner.execute(method.getMethod(), param);
+
+			response.setResult(result);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			LOG.error(e);
+			response.setError("server err :" + e.getMessage());
+		}
+		ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+	}
+
+	/**
+	 * 具体的执行一个task
+	 * 
+	 * @param ctx
+	 * @param request
+	 * @param threadName
+	 */
 	private void executeTask(ChannelHandlerContext ctx, RpcRequest request, String threadName) {
-		ThreadManager.add2ActionTask(threadName, Thread.currentThread());
 
 		RpcResponse response = Rpcs.getRep();
 

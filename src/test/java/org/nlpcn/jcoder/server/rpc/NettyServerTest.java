@@ -14,6 +14,8 @@
 //import org.nlpcn.jcoder.server.rpc.client.VFile;
 //import org.nlpcn.jcoder.server.rpc.server.RpcServer;
 //
+//import com.alibaba.fastjson.JSONObject;
+//
 //import io.netty.channel.ChannelFutureListener;
 //
 //public class NettyServerTest {
@@ -21,7 +23,7 @@
 //	@Test
 //	public void startServerTest() throws Exception {
 //		RpcServer.startServer(8081);
-//		Thread.sleep(100000000L);
+//
 //	}
 //
 //	static AtomicInteger ai = new AtomicInteger(1000000);
@@ -31,10 +33,26 @@
 //	@Test
 //	public void clientTest() throws Throwable {
 //
+//		RpcClient.connect("localhost", 8081);
+//
+//		RpcRequest req = new RpcRequest(UUID.randomUUID().toString(), "ApiTest", "defaultTest", true, false, 0, new Object[] {});
+//		
+//		System.out.println(JSONObject.toJSONString(req));
+//
+//		Object proxy = RpcClient.getInstance().proxyJson(req);
+//
+//		System.out.println(proxy);
+//
+//		RpcClient.shutdown();
+//
+//	}
+//
+//	@Test
+//	public void clientThreadTest() throws Throwable {
+//
 //		ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);
 //
 //		RpcClient.connect("localhost", 8081);
-//
 //
 //		Runnable r = () -> {
 //			try {
@@ -81,35 +99,38 @@
 //
 //		RpcClient.connect("localhost", 8081);
 //
-//		RpcRequest req = new RpcRequest(UUID.randomUUID().toString(), "Testioc", "searchData", true, false, 0, new Object[] {new VFile(new FileInputStream(new File("README.md"))) });
-//		
-//		long start = System.currentTimeMillis() ;
+//		RpcRequest req = new RpcRequest(UUID.randomUUID().toString(), "Testioc", "searchData", true, false, 0,
+//				new Object[] { new VFile(new FileInputStream(new File("README.md"))) });
+//
+//		long start = System.currentTimeMillis();
 //
 //		try {
 //			for (int i = 0; i < 1; i++) {
 //				Object proxy = RpcClient.getInstance().proxy(req);
-//				
+//
 //				System.out.println(proxy);
 //			}
-//			
+//
 //		} catch (Exception e) {
 //			err.incrementAndGet();
 //			System.err.println(e);
 //		} finally {
 //			ai.decrementAndGet();
 //		}
-//		
+//
 //		RpcClient.shutdown();
 //
 //	}
-//	
+//
 //	@Test
-//	public void clientFileTest() throws InterruptedException{
-//		
+//	public void clientFileTest() throws InterruptedException {
+//
 //		RpcClient.connect("localhost", 8081);
 //
-//		RpcClient.getInstance().getChannel().writeAndFlush(new RpcRequest("aaaaaaaaaaaa", VFile.VFILE_CLIENT, VFile.VFILE_CLIENT, true, false, 10000, new Object[] { new byte[]{1,2,3} })).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-//		
+//		RpcClient.getInstance().getChannel()
+//				.writeAndFlush(new RpcRequest("aaaaaaaaaaaa", VFile.VFILE_CLIENT, VFile.VFILE_CLIENT, true, false, 10000, new Object[] { new byte[] { 1, 2, 3 } }))
+//				.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+//
 //	}
 //
 //}

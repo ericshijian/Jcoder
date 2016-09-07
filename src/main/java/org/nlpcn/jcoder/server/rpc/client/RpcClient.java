@@ -191,7 +191,6 @@ public class RpcClient {
 		} finally {
 			callBackMap.remove(messageId);
 		}
-
 	}
 
 	class ClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
@@ -239,6 +238,7 @@ public class RpcClient {
 
 		/**
 		 * 从一个流中读取
+		 * 
 		 * @param file
 		 * @throws InterruptedException
 		 * @throws IOException
@@ -290,6 +290,7 @@ public class RpcClient {
 
 		/**
 		 * 从文件中读取
+		 * 
 		 * @param file
 		 * @throws InterruptedException
 		 * @throws IOException

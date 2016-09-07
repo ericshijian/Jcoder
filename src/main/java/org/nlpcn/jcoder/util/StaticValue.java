@@ -33,6 +33,7 @@ public class StaticValue {
 	public static final File LIB_FILE = new File(HOME_FILE, "lib");
 	public static final File PLUGIN_FILE = new File(HOME_FILE, "plugins");
 	public static final String VERSION = getResource("version");
+	public static final File UPLOAD_DIR = new File(getValueOrCreate("upload", new File(HOME_FILE, "upload").getAbsolutePath()));
 
 	static {
 		LOG.info("env in system.propertie: jcoder_home : " + HOME_FILE.getAbsolutePath());
@@ -43,6 +44,7 @@ public class StaticValue {
 		LOG.info("env in system.propertie: jcoder_resource : " + RESOURCE_FILE.getAbsolutePath());
 		LOG.info("env in system.propertie: jcoder_lib : " + LIB_FILE.getAbsolutePath());
 		LOG.info("env in system.propertie: jcoder_plugins : " + PLUGIN_FILE.getAbsolutePath());
+		LOG.info("env in system.propertie: jcoder_upload : " + UPLOAD_DIR.getAbsolutePath());
 	}
 
 	private static Ioc systemIoc;
@@ -85,8 +87,8 @@ public class StaticValue {
 			LOG.debug("get property " + key + ":" + value);
 		}
 		if (value == null) {
-			if(def!=null){
-				System.setProperty(PREFIX + key, def) ;
+			if (def != null) {
+				System.setProperty(PREFIX + key, def);
 			}
 			return def;
 		} else {
