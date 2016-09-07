@@ -35,7 +35,7 @@ public class ContextHandler extends ChannelInboundHandlerAdapter {
 		RpcResponse rep = new RpcResponse(request.getMessageId());
 
 		rpcContext.setRep(rep);
-
+		
 		Rpcs.setContext(rpcContext);
 
 		super.channelRead(ctx, msg);

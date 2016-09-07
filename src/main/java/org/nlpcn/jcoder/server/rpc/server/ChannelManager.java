@@ -37,13 +37,9 @@ public class ChannelManager {
 
 		try {
 			LOCK.lock();
-			ClientChannel clientChannel = CHANNEL_MAP.get(channel);
+			ClientChannel clientChannel = CHANNEL_MAP.remove(channel);
 			if (clientChannel != null) {
-				clientChannel.getChannels().remove(channel);
-				if (clientChannel.getChannels().size() == 0) {
-					CLIENT_ID_MAP.remove(clientChannel.getClientId());
-					CHANNEL_MAP.remove(channel);
-				}
+				CLIENT_ID_MAP.remove(clientChannel.getClientId());
 			}
 		} finally {
 			LOCK.unlock();
@@ -64,9 +60,6 @@ public class ChannelManager {
 			if ((clientChannel = CLIENT_ID_MAP.get(clientId)) == null) {
 				clientChannel = new ClientChannel(clientId, channel);
 				CLIENT_ID_MAP.put(clientId, clientChannel);
-				CHANNEL_MAP.put(channel, clientChannel);
-			} else {
-				clientChannel.addChannel(channel);
 				CHANNEL_MAP.put(channel, clientChannel);
 			}
 		} finally {

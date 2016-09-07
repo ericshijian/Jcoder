@@ -17,13 +17,15 @@ public class ClientChannel {
 
 	private String clientId;
 
-	private Set<Channel> channels;
+	private Channel channel;
 
 	private long loginTime;
+	
+	private long lastHeartTime ;
 
 	public ClientChannel(String clientId,Channel channel) {
 		this.clientId = clientId ;
-		this.channels = Sets.newHashSet(channel);
+		this.channel = channel ;
 		this.loginTime = System.currentTimeMillis();
 	}
 
@@ -35,17 +37,20 @@ public class ClientChannel {
 		this.clientId = clientId;
 	}
 
-	public void addChannel(Channel channel) {
-		channels.add(channel) ;
+	public Channel getChannel() {
+		return channel;
 	}
 
-	@Transient
-	public Set<Channel> getChannels() {
-		return channels;
+	public void setChannel(Channel channel) {
+		this.channel = channel;
 	}
 
-	public void setChannels(Set<Channel> channels) {
-		this.channels = channels;
+	public long getLastHeartTime() {
+		return lastHeartTime;
+	}
+
+	public void setLastHeartTime(long lastHeartTime) {
+		this.lastHeartTime = lastHeartTime;
 	}
 
 	public long getLoginTime() {
