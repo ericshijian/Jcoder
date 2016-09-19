@@ -4,16 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.nlpcn.jcoder.run.mvc.processor.ApiAdaptorProcessor;
+import org.nlpcn.jcoder.run.mvc.processor.ApiCrossOriginProcessor;
 import org.nlpcn.jcoder.run.mvc.processor.ApiFailProcessor;
 import org.nlpcn.jcoder.run.mvc.processor.ApiMethodInvokeProcessor;
 import org.nlpcn.jcoder.run.mvc.processor.ApiModuleProcessor;
 import org.nlpcn.jcoder.run.mvc.processor.ApiViewProcessor;
-import org.nutz.mvc.ActionChain;
 import org.nutz.mvc.ActionChainMaker;
 import org.nutz.mvc.ActionInfo;
 import org.nutz.mvc.NutConfig;
 import org.nutz.mvc.Processor;
-import org.nutz.mvc.impl.NutActionChain;
 import org.nutz.mvc.impl.processor.ActionFiltersProcessor;
 import org.nutz.mvc.impl.processor.EncodingProcessor;
 
@@ -25,6 +24,7 @@ public class ApiActionChainMaker implements ActionChainMaker {
 		// 正常处理的列表
 		List<Processor> list = new ArrayList<>();
 		list.add(init(config, ai, new EncodingProcessor())); // 设置编码信息@Encoding
+		list.add(init(config, ai, new ApiCrossOriginProcessor())) ;//增加跨域支持
 		list.add(init(config, ai, new ApiModuleProcessor())); // 获取入口类的对象,从ioc或直接new
 		list.add(init(config, ai, new ActionFiltersProcessor())); // 处理@Filters
 		list.add(init(config, ai, new ApiAdaptorProcessor())); // 处理@Adaptor

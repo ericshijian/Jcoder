@@ -11,11 +11,6 @@ import com.alibaba.fastjson.JSONObject;
 
 public class JsonpView implements View {
 
-	private static final String ORIGIN = "*";
-	private static final String METHODS = "get, post, put, delete, options";
-	private static final String HEADERS = "origin, content-type, accept";
-	private static final String CREDENTIALS = "true";
-
 	private int httpStatus = ApiException.OK;
 	private Object result;
 	private String methodName;
@@ -53,13 +48,7 @@ public class JsonpView implements View {
 		
 		resp.setHeader("Cache-Control", "no-cache");
 		resp.setContentType("text/javascript");
-		// crossorigin
-		resp.addHeader("Access-Control-Allow-Origin", ORIGIN);
-		resp.addHeader("Access-Control-Allow-Methods", METHODS);
-		resp.addHeader("Access-Control-Allow-Headers", HEADERS);
-		resp.addHeader("Access-Control-Allow-Credentials", CREDENTIALS);
-
-
+		
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(methodName);
