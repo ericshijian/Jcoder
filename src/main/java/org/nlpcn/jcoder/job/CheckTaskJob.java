@@ -21,7 +21,7 @@ public class CheckTaskJob implements Runnable {
 		while (true) {
 			try {
 				Thread.sleep(60000L);
-				LOG.info("begin checkTaskJob");
+				LOG.debug("begin checkTaskJob");
 				taskService.checkAllTask();
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -58,6 +58,7 @@ class QuartzSchedulerManager {
 	 * @throws SchedulerException
 	 */
 	protected static synchronized boolean addJob(Task task) throws SchedulerException {
+		
 		// ｔａｓｋ已激活
 		if (task.getStatus() == 0) {
 			LOG.info(task.getName() + " status not active to skip!");
@@ -73,6 +74,8 @@ class QuartzSchedulerManager {
 			LOG.info(task.getName() + " type not to skip!");
 			return false;
 		}
+		
+		
 	}
 
 	protected static JobDetail makeJobDetail(Task task) {

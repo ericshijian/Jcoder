@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
+import org.nlpcn.commons.lang.util.MapCount;
 import org.nlpcn.commons.lang.util.StringUtil;
 import org.nlpcn.jcoder.domain.Task;
 import org.nlpcn.jcoder.domain.TaskHistory;
@@ -211,7 +212,7 @@ public class TaskService {
 	 * @throws TaskException
 	 */
 	public void initTaskFromDB() throws TaskException {
-
+		
 		List<Task> search = this.basicDao.search(Task.class, "id");
 
 		// 取得目前正在运行的task
@@ -219,7 +220,8 @@ public class TaskService {
 
 		HashSet<String> taskSet = new HashSet<>();
 
-		list.forEach(ti -> taskSet.add(ti.getName()));
+		list.forEach(ti -> taskSet.add(ti.getTaskName()));
+		
 
 		ThreadManager.stopScheduler();
 
@@ -233,11 +235,11 @@ public class TaskService {
 					task.setMessage("not active");
 				} else if (task.getType() == 2) {
 					// 如果只是运行一次的计划任务。并且这个任务还在活动中。那么这个任务将不再发布
-					if ((StringUtil.isBlank(task.getScheduleStr()) || "while".equals(task.getScheduleStr())) && taskSet.contains(task.getName())) {
+					if ((StringUtil.isBlank(task.getScheduleStr()) || "while".equals(task.getScheduleStr().toLowerCase())) && taskSet.contains(task.getName())) {
 						LOG.warn(task.getName() + " in runing in! so not to publish it!");
 						continue;
 					}
-
+					
 					if (ThreadManager.add(task)) {
 						task.setMessage("regedit ok ! cornStr : " + task.getScheduleStr());
 					}
@@ -363,14 +365,15 @@ public class TaskService {
 		// 线程任务
 		List<TaskInfo> threads = ThreadManager.getAllThread();
 
-		Set<String> sets = Sets.newHashSet();
+		MapCount<String> mc = new MapCount<>();
 
-		threads.forEach(ti -> sets.add(ti.getName()));
+		threads.forEach(ti -> mc.add(ti.getTaskName()));
 
 		for (Task task : search) {
 			// 检查while的task是否活着
 			if (task.getStatus() == 1 && "while".equalsIgnoreCase(task.getScheduleStr())) {
-				if (!sets.contains(task.getName())) {
+				Double num = mc.get().get(task.getName());
+				if (num == null || num != 1) {
 					LOG.warn(task.getName() + " is while task , not find in threads , now to start it! ");
 					this.flush(task.getId());
 				}
@@ -378,7 +381,7 @@ public class TaskService {
 			// stop的task是否活着
 			if (task.getStatus() == 0) {
 				// 如果不是1 那么不正常，全局刷新
-				if (sets.contains(task.getName())) {
+				if (mc.get().containsKey(task.getName())) {
 					LOG.warn(task.getName() + " is stop task , but it is runing, now sotp it ! ");
 					this.flush(task.getId());
 				}

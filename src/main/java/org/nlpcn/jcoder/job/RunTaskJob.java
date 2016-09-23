@@ -1,14 +1,14 @@
 package org.nlpcn.jcoder.job;
 
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.Logger;
 import org.nlpcn.commons.lang.util.StringUtil;
 import org.nlpcn.jcoder.domain.Task;
 import org.nlpcn.jcoder.scheduler.ThreadManager;
 import org.nlpcn.jcoder.service.TaskService;
 import org.nlpcn.jcoder.util.SharedSpace;
-
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 public class RunTaskJob implements Runnable {
 

@@ -31,7 +31,7 @@ public class ThreadManager {
 	 * @throws SchedulerException
 	 * @throws TaskException
 	 */
-	public synchronized static boolean add(Task task) throws TaskException {
+	public synchronized static boolean add(Task task) throws TaskException, SchedulerException {
 
 		boolean flag = true;
 
@@ -53,7 +53,17 @@ public class ThreadManager {
 	 * @throws TaskException
 	 */
 	public static void run(Task task) throws TaskException {
+
+		//如果是while或者一次性任务将不再添加进来
+		if (StringUtil.isBlank(task.getScheduleStr()) || "while".equals(task.getScheduleStr().toLowerCase())) {
+			if (TaskRunManager.checkTaskExists(task.getName())) {
+				LOG.warn("task " + task.getName() + " has been in joblist so skip it ");
+				return;
+			}
+		}
+
 		String threadName = task.getName() + "@" + JOB_ID.getAndIncrement() + "@" + DateUtils.formatDate(new Date(), "yyyyMMddHHmmss");
+
 		TaskRunManager.runTaskJob(new TaskJob(threadName, task));
 	}
 

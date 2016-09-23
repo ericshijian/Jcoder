@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
-import org.nlpcn.jcoder.domain.Task;
 
 class TaskRunManager {
 
@@ -93,6 +92,28 @@ class TaskRunManager {
 
 	}
 
+	/**
+	 * 检查taskName是否存在.
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static boolean checkTaskExists(String key) {
+		key = key + "@";
+		for (String threadName : THREAD_POOL.keySet()) {
+			if (threadName.startsWith(key)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 检查threadName是否存在.
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public static boolean checkExists(String key) {
 		return THREAD_POOL.containsKey(key);
 	}

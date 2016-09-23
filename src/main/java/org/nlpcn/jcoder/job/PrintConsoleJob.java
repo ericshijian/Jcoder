@@ -32,7 +32,7 @@ public class PrintConsoleJob implements Runnable {
 								line = br.readLine();
 
 								if (count++ > 1000) {
-									LOG.info("read about 100 times for log !");
+									LOG.debug("read about 100 times for log !");
 									count = 0;
 								}
 
@@ -50,7 +50,7 @@ public class PrintConsoleJob implements Runnable {
 					}
 				}
 				if (count++ > 60) {
-					LOG.info("no connect ! wait for client conn!");
+					LOG.debug("no connect ! wait for client conn!");
 					count = 0;
 				}
 
