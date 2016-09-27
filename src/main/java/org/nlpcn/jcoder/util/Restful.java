@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 
 public class Restful {
 
+	public static Restful OK = new Restful(true);
+	public static Restful ERR = new Restful(false);
+
 	private boolean ok = true;
 
 	private String message;
@@ -47,6 +50,10 @@ public class Restful {
 	public Restful() {
 	}
 
+	public Restful(boolean ok) {
+		this.ok = ok;
+	}
+
 	public Restful(boolean ok, String message, Object obj, int code) {
 		this.ok = ok;
 		this.message = message;
@@ -58,6 +65,11 @@ public class Restful {
 		this.ok = ok;
 		this.message = message;
 		this.obj = obj;
+	}
+
+	public Restful(boolean ok, String message) {
+		this.ok = ok;
+		this.message = message;
 	}
 
 	public Restful(String message, Object obj) {
@@ -84,6 +96,14 @@ public class Restful {
 
 	public static Restful instance(String message, Object obj) {
 		return new Restful(message, obj);
+	}
+
+	public static Restful instance(String message) {
+		return new Restful(message);
+	}
+
+	public static Restful instance(boolean ok, String message) {
+		return new Restful(ok, message);
 	}
 
 	public static Restful instance(Object obj) {

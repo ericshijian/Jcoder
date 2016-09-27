@@ -1,18 +1,17 @@
 package org.nlpcn.jcoder.controller;
 
-import com.alibaba.fastjson.JSONObject;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.nlpcn.jcoder.domain.Task;
 import org.nlpcn.jcoder.domain.TaskInfo;
 import org.nlpcn.jcoder.domain.UserGroup;
-import org.nlpcn.jcoder.filter.AuthoritiesManager;
 import org.nlpcn.jcoder.scheduler.TaskException;
 import org.nlpcn.jcoder.scheduler.ThreadManager;
 import org.nlpcn.jcoder.service.TaskService;
 import org.nlpcn.jcoder.util.StaticValue;
 import org.nlpcn.jcoder.util.dao.BasicDao;
 import org.nutz.dao.Cnd;
-import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.ioc.loader.annotation.IocBean;
 import org.nutz.mvc.Mvcs;
 import org.nutz.mvc.annotation.At;
@@ -22,7 +21,7 @@ import org.nutz.mvc.annotation.Ok;
 import org.nutz.mvc.filter.CheckSession;
 import org.quartz.SchedulerException;
 
-import java.util.List;
+import com.alibaba.fastjson.JSONObject;
 
 @IocBean
 public class ThreadAction {

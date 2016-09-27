@@ -10,10 +10,12 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
@@ -29,6 +31,8 @@ import org.nlpcn.jcoder.domain.ClassDoc;
 import org.nlpcn.jcoder.domain.ClassDoc.MethodDoc;
 import org.nlpcn.jcoder.domain.CodeInfo.ExecuteMethod;
 import org.nlpcn.jcoder.domain.Task;
+import org.nlpcn.jcoder.domain.Token;
+import org.nlpcn.jcoder.domain.User;
 import org.nlpcn.jcoder.filter.AuthoritiesManager;
 import org.nlpcn.jcoder.run.java.ClassUtil;
 import org.nlpcn.jcoder.run.java.DynamicEngine;
@@ -36,10 +40,14 @@ import org.nlpcn.jcoder.run.java.JavaRunner;
 import org.nlpcn.jcoder.run.java.JavaSourceUtil;
 import org.nlpcn.jcoder.scheduler.ThreadManager;
 import org.nlpcn.jcoder.service.TaskService;
+import org.nlpcn.jcoder.service.TokenService;
 import org.nlpcn.jcoder.util.ExceptionUtil;
 import org.nlpcn.jcoder.util.JavaDocUtil;
 import org.nlpcn.jcoder.util.JavaSource2RpcUtil;
+import org.nlpcn.jcoder.util.Restful;
 import org.nlpcn.jcoder.util.StaticValue;
+import org.nutz.dao.Cnd;
+import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.ioc.loader.annotation.IocBean;
 import org.nutz.mvc.Mvcs;
 import org.nutz.mvc.annotation.At;
@@ -58,6 +66,9 @@ public class ApiAction {
 	private static final Logger LOG = Logger.getLogger(ApiAction.class);
 
 	private static final Set<String> DEFAULT_METHODS = Sets.newHashSet("GET", "POST", "PUT", "DELETE");
+
+	@Inject
+	private TaskService taskService;
 
 	/**
 	 * api
@@ -481,23 +492,40 @@ public class ApiAction {
 		}
 	}
 
-	public static void main(String[] args) {
-		String pom = "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n"
-				+ "                  <modelVersion>4.0.0</modelVersion>\n" + "                  <groupId>org.nlpcn.jcoder</groupId>\n"
-				+ "                  <artifactId>jcoder-rpc-client</artifactId>\n" + "                  <version>1.0</version>\n" + "\n" + "\n" + "        <dependencies>\n" + "\n"
-				+ "                <dependency>\n" + "                        <groupId>io.netty</groupId>\n" + "                        <artifactId>netty-all</artifactId>\n"
-				+ "                        <version>4.1.2.Final</version>\n" + "                        <scope>compile</scope>\n" + "                </dependency>\n" + "\n"
-				+ "                <dependency>\n" + "                        <groupId>io.protostuff</groupId>\n"
-				+ "                        <artifactId>protostuff-core</artifactId>\n" + "                        <version>1.4.4</version>\n"
-				+ "                        <scope>compile</scope>\n" + "                </dependency>\n" + "\n" + "                <dependency>\n"
-				+ "                        <groupId>io.protostuff</groupId>\n" + "                        <artifactId>protostuff-runtime</artifactId>\n"
-				+ "                        <version>1.4.4</version>\n" + "                        <scope>compile</scope>\n" + "                </dependency>\n" + "\n"
-				+ "                <dependency>\n" + "                        <groupId>org.objenesis</groupId>\n" + "                        <artifactId>objenesis</artifactId>\n"
-				+ "                        <version>2.4</version>\n" + "                        <scope>compile</scope>\n" + "                </dependency>\n" + "\n"
-				+ "                <dependency>\n" + "                        <groupId>org.jasypt</groupId>\n" + "                        <artifactId>jasypt</artifactId>\n"
-				+ "                        <version>1.9.2</version>\n" + "                        <scope>compile</scope>\n" + "                </dependency>\n" + "\n"
-				+ "        </dependencies>\n" + "</project>";
+	/**
+	 * 更新一个task
+	 * 
+	 * @param project
+	 * @param api
+	 * @param filePath
+	 * @param ref
+	 * @param userName
+	 * @param password
+	 * @return
+	 * @throws Exception
+	 */
+	@At("/api_token/?")
+	@Ok("json")
+	public Object apiToken(Long taskId, String userName, String password) throws Exception {
 
-		System.out.println(pom);
+		User user = StaticValue.systemDao.findByCondition(User.class, Cnd.where("name", "=", userName).and("password", "=", StaticValue.passwordEncoding(password)));
+
+		if (user == null) {
+			String ip = StaticValue.getRemoteHost(Mvcs.getReq());
+			LOG.warn(ip + " get token err !");
+			return Restful.instance(false, ip + " : err userName or password");
+		}
+
+		String key = UUID.randomUUID().toString();
+
+		Token token = new Token();
+		token.setToken(key);
+		token.setCreateTime(new Date());
+		token.setUser(user);
+
+		TokenService.putToken(key, token);
+
+		return Restful.instance(token);
 	}
+
 }
