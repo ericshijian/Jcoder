@@ -83,6 +83,7 @@ public class Bootstrap {
 		context.setTempDirectory(new File(jcoderHome, "tmp"));
 		context.setContextPath("/");
 		context.setServer(server);
+		context.setMaxFormContentSize(0);
 
 		context.setWelcomeFiles(new String[] { "Home.jsp" });
 
