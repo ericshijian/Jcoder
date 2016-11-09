@@ -1,9 +1,13 @@
 package org.nlpcn.jcoder.run.java;
 
 import org.apache.log4j.Logger;
+import org.nlpcn.jcoder.filter.AuthoritiesManager;
+import org.nlpcn.jcoder.filter.HostFilter;
 import org.nlpcn.jcoder.run.annotation.DefaultExecute;
 import org.nlpcn.jcoder.util.StaticValue;
 import org.nutz.ioc.loader.annotation.Inject;
+import org.nutz.mvc.annotation.By;
+import org.nutz.mvc.annotation.Filters;
 
 /**
  * 测试文档搜索
@@ -22,6 +26,7 @@ public class ApiTest {
 	 * @throws InterruptedException 线程停止时抛出
 	 */
 	@DefaultExecute
+	@Filters(@By(type = HostFilter.class))
 	public String defaultTest(String name) throws InterruptedException {
     	Integer a = null ;
 		return StaticValue.okMessage("hello " + name);

@@ -371,7 +371,7 @@ public class TaskService {
 			// 检查while的task是否活着
 			if (task.getStatus() == 1 && "while".equalsIgnoreCase(task.getScheduleStr())) {
 				Double num = mc.get().get(task.getName());
-				if (num == null || num != 1) {
+				if (num == null || num < 1) {
 					LOG.warn(task.getName() + " is while task , not find in threads , now to start it! ");
 					this.flush(task.getId());
 				}

@@ -14,11 +14,7 @@ public class CronTest {
 
 	@DefaultExecute
 	public void execute() throws InterruptedException, UnsupportedEncodingException, FileNotFoundException {
-		while (true) {
-			log.info("中文");
-			Thread.sleep(1000L);
-		}
-
+		log.info("test test");
 	}
 
 }
